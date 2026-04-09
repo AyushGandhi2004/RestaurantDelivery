@@ -59,7 +59,7 @@ const start = async () => {
 // Ensures open DB connections are closed cleanly when the
 // process receives a termination signal (e.g. Render restart)
 
-const shutdown = async () => {
+const shutdown = async (signal) => {
     console.log(`\n${signal} received. Shutting down gracefully...`);
     httpServer.close(async () => {
         try {
@@ -73,7 +73,7 @@ const shutdown = async () => {
     });
 };
 
-process.on('SIGINT', shutdown); // Handle Ctrl+C interrupt signal
-process.on('SIGTERM', shutdown); // Handle termination signal (e.g. from Render restart)
+process.on('SIGINT', () => shutdown('SIGINT')); // Handle Ctrl+C interrupt signal
+process.on('SIGTERM', () => shutdown('SIGTERM')); // Handle termination signal (e.g. from Render restart)
 
 start();
