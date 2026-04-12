@@ -8,7 +8,7 @@ import ShopSettings from '../models/ShopSettings.model.js';
 //GET api/menu:
 //returns all active categories with their available items and cached in redis for 5 mins
 export const getFullMenu = asyncHandler(async (req, res) => {
-    const cached = getMenuCache();
+    const cached = await getMenuCache();
     if(cached){
         return sendSuccess(res, {menu : cached, fromCache : true}, "Menu fetched");
     }
@@ -28,7 +28,7 @@ export const getFullMenu = asyncHandler(async (req, res) => {
     }));
 
     await setMenuCache(menu);
-
+    console.log(menu);
     sendSuccess(res, {menu, fromCache : false}, 'Menu fetched');
 });
 

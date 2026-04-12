@@ -1,5 +1,6 @@
 import { asyncHandler, generateToken, AppError, sendSuccess } from '../utils/helpers.js';
 import { body } from 'express-validator';
+import bcrypt from 'bcryptjs';
 import validate from '../middleware/validate.js';
 import User from '../models/User.model.js';
 
@@ -22,8 +23,7 @@ export const registerValidation = [
         .isLength({min : 6}).withMessage('Password must be at least 6 characters long')
         .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
         .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
-        .matches(/[0-9]/).withMessage('Password must contain at least one number')
-        .matches(/[@$!%*?&]/).withMessage('Password must contain at least one special character (@$!%*?&)'),
+        .matches(/[0-9]/).withMessage('Password must contain at least one number'),
 
     body('phone')
         .optional()
@@ -83,7 +83,7 @@ export const login = asyncHandler(async (req, res) => {
         throw new AppError('Invalid email or password', 401);
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
     if(!isMatch){
         throw new AppError('Invalid email or password', 401);
     }
