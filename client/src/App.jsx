@@ -1,25 +1,30 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 
-import { AuthProvider } from './context/AuthContext.jsx';
-import { CartProvider } from './context/CartContext.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-import Navbar from './components/Navbar.jsx';
-import CartDrawer from './components/cart/CartDrawer.jsx';
+import { AuthProvider }  from './context/AuthContext.jsx';
+import { CartProvider }  from './context/CartContext.jsx';
+import ProtectedRoute    from './components/ProtectedRoute.jsx';
+import Navbar            from './components/Navbar.jsx';
+import CartDrawer        from './components/cart/CartDrawer.jsx';
 
-import Home          from './pages/Home.jsx';
-import MenuPage      from './pages/MenuPage.jsx';
-import Login         from './pages/Login.jsx';
-import Register      from './pages/Register.jsx';
-import NotFound      from './pages/NotFound.jsx';
+import Home              from './pages/Home.jsx';
+import MenuPage          from './pages/MenuPage.jsx';
+import Login             from './pages/Login.jsx';
+import Register          from './pages/Register.jsx';
+import NotFound          from './pages/NotFound.jsx';
+import CheckoutPage      from './pages/CheckoutPage.jsx';
+import OrderTracking     from './pages/OrderTracking.jsx';
+import OrderHistory      from './pages/OrderHistory.jsx';
 
-// Stubs — built in later phases
-const CheckoutPage    = () => <div className="p-8 text-center">Checkout — Phase 4</div>;
-const OrderTracking   = () => <div className="p-8 text-center">Order Tracking — Phase 5</div>;
-const OrderHistory    = () => <div className="p-8 text-center">Order History — Phase 4</div>;
-const AdminDashboard  = () => <div className="p-8 text-center">Admin — Phase 5</div>;
-const DeliveryDashboard = () => <div className="p-8 text-center">Delivery — Phase 6</div>;
+import AdminLayout       from './pages/admin/AdminLayout.jsx';
+import AdminDashboard    from './pages/admin/AdminDashboard.jsx';
+import AdminOrders       from './pages/admin/AdminOrders.jsx';
+import AdminShopSettings from './pages/admin/AdminShopSettings.jsx';
+
+// Phase 5 stubs — built next
+const AdminMenuManager  = () => <div className="p-8 text-gray-400">Menu Manager — Phase 7</div>;
+const DeliveryDashboard = () => <div className="p-8 text-gray-400">Delivery Dashboard — Phase 6</div>;
 
 const AppLayout = () => {
   const [cartOpen, setCartOpen] = useState(false);
@@ -31,9 +36,9 @@ const AppLayout = () => {
       <main>
         <Routes>
           {/* Public */}
-          <Route path="/"        element={<Home />} />
-          <Route path="/menu"    element={<MenuPage />} />
-          <Route path="/login"   element={<Login />} />
+          <Route path="/"         element={<Home />} />
+          <Route path="/menu"     element={<MenuPage />} />
+          <Route path="/login"    element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           {/* Customer protected */}
@@ -47,12 +52,15 @@ const AppLayout = () => {
             <ProtectedRoute><OrderTracking /></ProtectedRoute>
           } />
 
-          {/* Admin protected */}
-          <Route path="/admin/*" element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
+          {/* Admin — nested layout */}
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>
+          }>
+            <Route index          element={<AdminDashboard />} />
+            <Route path="orders"  element={<AdminOrders />} />
+            <Route path="menu"    element={<AdminMenuManager />} />
+            <Route path="settings" element={<AdminShopSettings />} />
+          </Route>
 
           {/* Delivery protected */}
           <Route path="/delivery" element={
@@ -61,7 +69,6 @@ const AppLayout = () => {
             </ProtectedRoute>
           } />
 
-          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -78,10 +85,7 @@ const App = () => (
           position="top-right"
           toastOptions={{
             duration: 3000,
-            style: {
-              borderRadius: '10px',
-              fontSize: '14px',
-            },
+            style: { borderRadius: '10px', fontSize: '14px' },
           }}
         />
       </CartProvider>

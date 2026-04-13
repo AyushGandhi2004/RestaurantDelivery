@@ -316,7 +316,14 @@ export const updateOrderStatus = asyncHandler( async (req, res) => {
     order.status = status;
     await order.save();
 
-    //Socket io code later
+    //Emit Real Time Update to order room:
+    try {
+        const { io } = await import('../../server.js');
+        io.to(`order_${id}`).emit('orderStatusUpdate', {status, updatedAt : order.updatedAt });
+        console.log(`Emitted order status update to room order_${id}: ${status}`);
+    } catch (error) {
+        console.log('Socket emit error : ', error.message);
+    }
 
     sendSuccess(res, { order }, 'Order status updated successfully');
 })
