@@ -21,10 +21,12 @@ import AdminLayout       from './pages/admin/AdminLayout.jsx';
 import AdminDashboard    from './pages/admin/AdminDashboard.jsx';
 import AdminOrders       from './pages/admin/AdminOrders.jsx';
 import AdminShopSettings from './pages/admin/AdminShopSettings.jsx';
+import DeliveryDashboard from './pages/delivery/DeliveryDashboard.jsx';
 
-// Phase 5 stubs — built next
-const AdminMenuManager  = () => <div className="p-8 text-gray-400">Menu Manager — Phase 7</div>;
-const DeliveryDashboard = () => <div className="p-8 text-gray-400">Delivery Dashboard — Phase 6</div>;
+// Phase 7 stub
+const AdminMenuManager = () => (
+  <div className="p-8 text-gray-400">Menu Manager — Phase 7</div>
+);
 
 const AppLayout = () => {
   const [cartOpen, setCartOpen] = useState(false);
@@ -54,15 +56,17 @@ const AppLayout = () => {
 
           {/* Admin — nested layout */}
           <Route path="/admin" element={
-            <ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
           }>
-            <Route index          element={<AdminDashboard />} />
-            <Route path="orders"  element={<AdminOrders />} />
-            <Route path="menu"    element={<AdminMenuManager />} />
+            <Route index           element={<AdminDashboard />}    />
+            <Route path="orders"   element={<AdminOrders />}       />
+            <Route path="menu"     element={<AdminMenuManager />}  />
             <Route path="settings" element={<AdminShopSettings />} />
           </Route>
 
-          {/* Delivery protected */}
+          {/* Delivery */}
           <Route path="/delivery" element={
             <ProtectedRoute requiredRole="delivery">
               <DeliveryDashboard />

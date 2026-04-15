@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { MapPin, Phone, Clock, Package } from 'lucide-react';
 import orderService from '../services/order.service.js';
 import StatusTimeline from '../components/order/StatusTimeline.jsx';
+import LiveMap from '../components/order/LiveMap.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 import { formatPrice, formatDateTime } from '../utils/formatters.js';
 import { RESTAURANT } from '../utils/constants.js';
@@ -25,44 +26,35 @@ const OrderTracking = () => {
       .finally(()   => setLoading(false));
   }, [id]);
 
-  // ── Join socket room once socket + order are both ready ────
+  // ── Join socket room ───────────────────────────────────────
   useEffect(() => {
     if (!socket || !order || joinedRef.current) return;
-    // Skip joining if order is already delivered — no more updates coming
     if (order.status === 'delivered') return;
 
     joinOrderRoom(id);
     joinedRef.current = true;
 
-    // Confirmation that we joined
     socket.on('room_joined', ({ orderId, status }) => {
-      console.log(`Joined room for order ${orderId}, current status: ${status}`);
+      console.log(`Joined room for order ${orderId}, status: ${status}`);
     });
 
-    // ── Real-time status update ──────────────────────────────
     socket.on('order_status_update', ({ status, updatedAt }) => {
       setOrder((prev) => prev ? { ...prev, status, updatedAt } : prev);
 
-      // Toast message based on the new status
       const messages = {
         preparing:        'Your order is being prepared!',
         ready:            'Your order is ready for pickup!',
         out_for_delivery: 'Your order is out for delivery!',
         delivered:        'Your order has been delivered. Enjoy!',
       };
-      if (messages[status]) {
-        toast.success(messages[status], { duration: 5000 });
-      }
+      if (messages[status]) toast.success(messages[status], { duration: 5000 });
     });
 
-    // Cleanup listeners when component unmounts
     return () => {
       socket.off('room_joined');
       socket.off('order_status_update');
     };
   }, [socket, order, id, joinOrderRoom]);
-
-  // ── Phase 6: rider_location listener wired here ───────────
 
   if (loading) {
     return (
@@ -105,8 +97,8 @@ const OrderTracking = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-semibold text-gray-900">Order Status</h2>
               {order.status !== 'delivered' && (
-                <span className="flex items-center gap-1.5 text-xs text-green-600
-                                 font-medium">
+                <span className="flex items-center gap-1.5 text-xs
+                                 text-green-600 font-medium">
                   <span className="w-2 h-2 bg-green-500 rounded-full
                                    animate-pulse-dot inline-block" />
                   Live updates on
@@ -116,17 +108,21 @@ const OrderTracking = () => {
             <StatusTimeline currentStatus={order.status} />
           </div>
 
-          {/* Live map slot — Phase 6 */}
+          {/* Live map — only when out for delivery */}
           {order.status === 'out_for_delivery' && (
             <div className="card p-6">
-              <h2 className="font-semibold text-gray-900 mb-4">
-                Live Rider Location
-              </h2>
-              <div className="h-64 bg-gray-100 rounded-xl flex items-center
-                              justify-center text-gray-400 text-sm">
-                {/* Phase 6: <LiveMap socket={socket} /> */}
-                Map coming in Phase 6
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-gray-900">
+                  Live Rider Location
+                </h2>
+                <span className="flex items-center gap-1.5 text-xs
+                                 text-red-500 font-medium">
+                  <span className="w-2 h-2 bg-red-500 rounded-full
+                                   animate-pulse-dot inline-block" />
+                  Live
+                </span>
               </div>
+              <LiveMap socket={socket} orderId={id} />
             </div>
           )}
         </div>
@@ -159,7 +155,8 @@ const OrderTracking = () => {
                     : formatPrice(order.deliveryFee)}
                 </span>
               </div>
-              <div className="flex justify-between font-bold text-gray-900 text-sm">
+              <div className="flex justify-between font-bold
+                              text-gray-900 text-sm">
                 <span>Total</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
@@ -176,7 +173,8 @@ const OrderTracking = () => {
             </div>
             <p className="text-sm text-gray-600">
               {order.deliveryAddress.line1},<br />
-              {order.deliveryAddress.city} — {order.deliveryAddress.pincode}
+              {order.deliveryAddress.city} —{' '}
+              {order.deliveryAddress.pincode}
             </p>
           </div>
 
