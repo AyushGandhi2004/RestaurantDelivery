@@ -6,7 +6,7 @@ import Order from '../models/Order.model.js';
 import User from '../models/User.model.js';
 import { config } from '../config/env.js';
 import validate from '../middleware/validate.js';
-import { DELIVERY_FEE, FREE_DELIVERY_ABOVE } from '../utils/constants.js';
+// import { DELIVERY_FEE, FREE_DELIVERY_ABOVE } from '../utils/constants.js';
 
 // ── Server-side constants ──────────────────────────────────────
 const DELIVERY_FEE_AMOUNT  = 40;

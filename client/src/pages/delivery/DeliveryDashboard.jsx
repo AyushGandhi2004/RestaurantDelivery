@@ -4,7 +4,7 @@ import {
   Package, Phone, Clock,
 } from 'lucide-react';
 import useLocation from '../../hooks/useLocation.js';
-import adminService from '../../services/admin.service.js';
+import riderService from '../../services/rider.service.js';
 import { formatPrice, formatDateTime } from '../../utils/formatters.js';
 import Spinner from '../../components/ui/Spinner.jsx';
 import toast from 'react-hot-toast';
@@ -21,36 +21,29 @@ const DeliveryDashboard = () => {
   const [activeOrders, setActiveOrders] = useState([]);
   const [loading,      setLoading]      = useState(true);
 
-  // Fetch orders that are out for delivery
-  useEffect(() => {
-    adminService.getActiveOrders()
-      .then((data) => {
-        // Delivery guy only sees orders that are out for delivery
-        const outForDelivery = data.orders.filter(
-          (o) => o.status === 'out_for_delivery'
-        );
-        setActiveOrders(outForDelivery);
-      })
-      .catch((err) => toast.error(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  // ── Fetch out-for-delivery orders ─────────────────────────
+  const fetchOrders = async () => {
+    try {
+      const data = await riderService.getActiveOrders();
+      setActiveOrders(
+        data.orders.filter((o) => o.status === 'out_for_delivery')
+      );
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Poll for new out-for-delivery orders every 30 seconds
+  useEffect(() => { fetchOrders(); }, []);
+
+  // Poll every 30 seconds for newly assigned deliveries
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const data = await adminService.getActiveOrders();
-        setActiveOrders(
-          data.orders.filter((o) => o.status === 'out_for_delivery')
-        );
-      } catch {
-        // silent
-      }
-    }, 30000);
+    const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-stop tracking on unmount
+  // Stop tracking on unmount
   useEffect(() => {
     return () => { if (isTracking) stopTracking(); };
   }, [isTracking, stopTracking]);
@@ -92,7 +85,6 @@ const DeliveryDashboard = () => {
             </div>
           </div>
 
-          {/* Live indicator pulse */}
           {isTracking && (
             <span className="flex items-center gap-1.5 text-xs
                              text-green-600 font-medium">
@@ -103,7 +95,7 @@ const DeliveryDashboard = () => {
           )}
         </div>
 
-        {/* Current coordinates */}
+        {/* Current coordinates display */}
         {currentCoords && (
           <div className="bg-gray-50 rounded-lg px-3 py-2 mb-4
                           flex items-center gap-2">
@@ -136,15 +128,9 @@ const DeliveryDashboard = () => {
           `}
         >
           {isTracking ? (
-            <>
-              <NavigationOff size={16} />
-              Stop Broadcasting
-            </>
+            <><NavigationOff size={16} /> Stop Broadcasting</>
           ) : (
-            <>
-              <Navigation size={16} />
-              Start Broadcasting
-            </>
+            <><Navigation size={16} /> Start Broadcasting</>
           )}
         </button>
 
@@ -155,9 +141,15 @@ const DeliveryDashboard = () => {
 
       {/* Active deliveries */}
       <div>
-        <h2 className="font-semibold text-gray-900 mb-3">
-          Active Deliveries
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-gray-900">Active Deliveries</h2>
+          <button
+            onClick={fetchOrders}
+            className="text-xs text-brand-600 hover:underline"
+          >
+            Refresh
+          </button>
+        </div>
 
         {loading ? (
           <div className="flex justify-center py-8">

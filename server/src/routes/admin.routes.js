@@ -20,6 +20,7 @@ import {
   shopSettingsValidation,
   orderStatusValidation,
 } from '../controllers/admin.controller.js';
+import { validObjectId } from "../utils/helpers.js";
 
 
 const router = Router();
@@ -30,14 +31,14 @@ router.use(requireAuth, requireRole('admin'));
 // Category routes
 router.get('/menu/categories', getAllCategories);
 router.post('/menu/categories', categoryValidation, createCategory);
-router.patch('/menu/categories/:id', categoryValidation, updateCategory);
-router.delete('/menu/categories/:id', deleteCategory);
+router.patch('/menu/categories/:id', validObjectId('id'), categoryValidation, updateCategory);
+router.delete('/menu/categories/:id', validObjectId('id'), deleteCategory);
 
 //Menu item routes
 router.get('/menu/items', getAllMenuItems);
 router.post('/menu/items', upload.single('image'), menuItemValidation, createMenuItem);
-router.patch('/menu/items/:id', upload.single('image'), updateMenuItem);
-router.delete('/menu/items/:id', deleteMenuItem);
+router.patch('/menu/items/:id', validObjectId('id'), upload.single('image'), updateMenuItem);
+router.delete('/menu/items/:id', validObjectId('id'), deleteMenuItem);
 
 //Shop settings routes
 router.patch('/shop/settings', shopSettingsValidation, updateShopSettings);
@@ -45,7 +46,7 @@ router.patch('/shop/settings', shopSettingsValidation, updateShopSettings);
 //Order management routes
 router.get('/orders', getActiveOrders);
 router.get('/orders/history', getOrderHistory);
-router.patch('/orders/:id/status', orderStatusValidation, updateOrderStatus);
+router.patch('/orders/:id/status', validObjectId('id'), orderStatusValidation, updateOrderStatus);
 
 
 

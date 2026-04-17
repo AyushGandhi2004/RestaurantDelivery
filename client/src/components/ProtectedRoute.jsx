@@ -1,31 +1,34 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import Spinner from './ui/Spinner.jsx';
+import PageLoader from './ui/PageLoader.jsx';
+
+const ROLE_HOME = {
+  admin:    '/admin',
+  delivery: '/delivery',
+  customer: '/menu',
+};
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  // Auth is still rehydrating from localStorage — show full-page loader
+  if (loading) return <PageLoader />;
 
+  // Not logged in — redirect to login, save intended destination
   if (!isAuthenticated) {
-    // Save attempted URL so we can return after login
     return (
-      <Navigate to={`/login?redirect=${location.pathname}`} replace />
+      <Navigate
+        to={`/login?redirect=${encodeURIComponent(location.pathname)}`}
+        replace
+      />
     );
   }
 
+  // Logged in but wrong role — send to their own home
   if (requiredRole && user?.role !== requiredRole) {
-    // Wrong role — redirect to appropriate home
-    if (user?.role === 'admin')    return <Navigate to="/admin"    replace />;
-    if (user?.role === 'delivery') return <Navigate to="/delivery" replace />;
-    return <Navigate to="/menu" replace />;
+    const home = ROLE_HOME[user?.role] || '/menu';
+    return <Navigate to={home} replace />;
   }
 
   return children;

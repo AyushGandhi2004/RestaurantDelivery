@@ -3,10 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { RESTAURANT } from '../../utils/constants.js';
-import api from '../../services/api.js';
+import riderService from '../../services/rider.service.js';
 
-// ── Fix Leaflet's broken default icon paths in Vite ───────────
-// Without this, markers show as broken images
+// ── Fix Leaflet default icon paths in Vite ────────────────────
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -14,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// ── Custom coloured icons ─────────────────────────────────────
+// ── Custom icons ──────────────────────────────────────────────
 const riderIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -33,7 +32,7 @@ const restaurantIcon = new L.Icon({
   shadowSize:  [41, 41],
 });
 
-// ── Helper: smoothly re-centre the map when rider moves ──────
+// ── Re-centres map smoothly when rider moves ──────────────────
 const MapUpdater = ({ center }) => {
   const map = useMap();
   useEffect(() => {
@@ -42,30 +41,24 @@ const MapUpdater = ({ center }) => {
   return null;
 };
 
-// ── LiveMap ───────────────────────────────────────────────────
-// Props:
-//   socket  — the Socket.io instance from useSocket()
-//   orderId — used to confirm we're in the right room
 const LiveMap = ({ socket, orderId }) => {
   const [riderPos, setRiderPos] = useState(null);
   const [loading,  setLoading]  = useState(true);
 
-  // ── 1. Fetch initial rider position via REST ───────────────
-  // This gives the map a starting position before the first
-  // socket event arrives (avoids blank map on load)
+  // ── Initial position via REST ─────────────────────────────
   useEffect(() => {
-    api.get('/api/location/rider')
-      .then((res) => {
-        setRiderPos({ lat: res.data.lat, lng: res.data.lng });
+    riderService.getRiderLocation()
+      .then((data) => {
+        setRiderPos({ lat: data.lat, lng: data.lng });
       })
       .catch(() => {
-        // Rider hasn't started broadcasting yet — centre on restaurant
+        // Rider not broadcasting yet — centre on restaurant
         setRiderPos({ lat: RESTAURANT.lat, lng: RESTAURANT.lng });
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // ── 2. Listen for live socket updates ─────────────────────
+  // ── Live updates via Socket.io ────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
@@ -107,7 +100,6 @@ const LiveMap = ({ socket, orderId }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Rider marker — updates in real time */}
         {riderPos && (
           <Marker
             position={[riderPos.lat, riderPos.lng]}
@@ -117,7 +109,6 @@ const LiveMap = ({ socket, orderId }) => {
           </Marker>
         )}
 
-        {/* Restaurant marker — static */}
         <Marker
           position={[RESTAURANT.lat, RESTAURANT.lng]}
           icon={restaurantIcon}
@@ -125,7 +116,6 @@ const LiveMap = ({ socket, orderId }) => {
           <Popup>{RESTAURANT.name}</Popup>
         </Marker>
 
-        {/* Re-centres map whenever rider moves */}
         {riderPos && (
           <MapUpdater center={[riderPos.lat, riderPos.lng]} />
         )}

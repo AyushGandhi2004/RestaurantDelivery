@@ -9,7 +9,7 @@ const MenuItemSchema = new mongoose.Schema({
         minLength : [2, 'Item name must be at least 2 characters long'],
         maxLength : [50, 'Item name cannot exceed 50 characters']
     },
-    CategoryId : {
+    categoryId : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'MenuCategory',
         required : true
@@ -54,7 +54,7 @@ const MenuItemSchema = new mongoose.Schema({
     }
 }, {timestamps : true});
 
-MenuItemSchema.index({CategoryId : 1, isAvailable : 1}); // Compound index for faster queries by category and availability
+MenuItemSchema.index({categoryId : 1, isAvailable : 1}); // Compound index for faster queries by category and availability
 
 const MenuItem = mongoose.model('MenuItem', MenuItemSchema);
 export default MenuItem;

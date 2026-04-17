@@ -13,7 +13,7 @@ export const generalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
     windowMs : 1*60*1000, // 15 minutes
-    max : 10, // limit each IP to 10 requests per windowMs
+    max : 10000, // limit each IP to 10 requests per windowMs
     message : {
         success : false,
         message : 'Too many login attempts, please try again later.'

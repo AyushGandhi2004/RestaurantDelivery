@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 
@@ -21,13 +21,10 @@ import AdminLayout       from './pages/admin/AdminLayout.jsx';
 import AdminDashboard    from './pages/admin/AdminDashboard.jsx';
 import AdminOrders       from './pages/admin/AdminOrders.jsx';
 import AdminShopSettings from './pages/admin/AdminShopSettings.jsx';
+import AdminMenuManager  from './pages/admin/AdminMenuManager.jsx';
 import DeliveryDashboard from './pages/delivery/DeliveryDashboard.jsx';
 
-// Phase 7 stub
-const AdminMenuManager = () => (
-  <div className="p-8 text-gray-400">Menu Manager — Phase 7</div>
-);
-
+// ── Layout wrapping all non-admin routes ───────────────────────
 const AppLayout = () => {
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -54,7 +51,7 @@ const AppLayout = () => {
             <ProtectedRoute><OrderTracking /></ProtectedRoute>
           } />
 
-          {/* Admin — nested layout */}
+          {/* Admin — nested layout with its own sidebar */}
           <Route path="/admin" element={
             <ProtectedRoute requiredRole="admin">
               <AdminLayout />
@@ -66,13 +63,17 @@ const AppLayout = () => {
             <Route path="settings" element={<AdminShopSettings />} />
           </Route>
 
-          {/* Delivery */}
+          {/* Delivery rider */}
           <Route path="/delivery" element={
             <ProtectedRoute requiredRole="delivery">
               <DeliveryDashboard />
             </ProtectedRoute>
           } />
 
+          {/* Convenience redirects */}
+          <Route path="/home" element={<Navigate to="/" replace />} />
+
+          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -80,6 +81,7 @@ const AppLayout = () => {
   );
 };
 
+// ── Root app ───────────────────────────────────────────────────
 const App = () => (
   <BrowserRouter>
     <AuthProvider>
@@ -89,7 +91,12 @@ const App = () => (
           position="top-right"
           toastOptions={{
             duration: 3000,
-            style: { borderRadius: '10px', fontSize: '14px' },
+            style: {
+              borderRadius: '10px',
+              fontSize:     '14px',
+              fontFamily:   'Inter, system-ui, sans-serif',
+            },
+            success: { iconTheme: { primary: '#ea580c', secondary: '#fff' } },
           }}
         />
       </CartProvider>

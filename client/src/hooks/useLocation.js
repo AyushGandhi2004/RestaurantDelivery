@@ -1,25 +1,25 @@
 import { useState, useRef, useCallback } from 'react';
-import api from '../services/api.js';
+import riderService from '../services/rider.service.js';
 import toast from 'react-hot-toast';
 
-const POST_INTERVAL_MS = 5000; // post at most once every 5 seconds
+const POST_INTERVAL_MS = 5000;
 
 const useLocation = () => {
   const [isTracking,    setIsTracking]    = useState(false);
   const [currentCoords, setCurrentCoords] = useState(null);
   const [error,         setError]         = useState('');
 
-  const watchIdRef       = useRef(null);
-  const lastPostTimeRef  = useRef(0);
+  const watchIdRef      = useRef(null);
+  const lastPostTimeRef = useRef(0);
 
   const postLocation = useCallback(async (lat, lng) => {
     const now = Date.now();
-    // Throttle — don't spam the server on every tiny GPS jitter
     if (now - lastPostTimeRef.current < POST_INTERVAL_MS) return;
     lastPostTimeRef.current = now;
 
     try {
-      await api.post('/api/location/update', { lat, lng });
+      // Now calls /api/rider/location instead of /api/location/update
+      await riderService.updateLocation({ lat, lng });
     } catch (err) {
       console.error('Failed to post location:', err.message);
     }

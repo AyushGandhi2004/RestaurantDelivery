@@ -1,5 +1,6 @@
 import jwt  from 'jsonwebtoken';
 import { config } from '../config/env.js';
+import mongoose from 'mongoose';
 
 
 //jwt token generator
@@ -40,4 +41,16 @@ export const sendSuccess = (res, data = {}, message = 'Success', statusCode = 20
     message,
     ...data,
   });
+};
+
+
+//Valid Object ID Guard:
+export const validObjectId = (paramName='id')=> (req, res, next) => {
+  if(!mongoose.Types.ObjectId.isValid(req.params[paramName])){
+    return res.status(400).json({
+      success : false,
+      message : `Invalid ID format for parameter "${paramName}"`
+    });
+  }
+  next();
 };

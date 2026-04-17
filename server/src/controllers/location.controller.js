@@ -36,7 +36,7 @@ export const updateLocation = asyncHandler(async (req , res) => {
 
     if(activeOrders.length > 0){
         try {
-            const io = await import('../../server.js');
+            const {io} = await import('../../server.js');
             activeOrders.forEach((order) =>{
                 io.to(`order_${order._id}`).emit('rider_location',{
                     lat: parsedLat,
