@@ -288,8 +288,8 @@ export const getOrderHistory = asyncHandler( async (req, res) => {
                     .sort({ createdAt : -1 })
                     .lean();
     
-    const totalRevenue = orders.reduce((sum, order) => sum + order.totalPrice,0);
-    sendSuccess(res, { orders }, 'Order history retrieved successfully');
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total,0);
+    sendSuccess(res, { orders, totalRevenue }, 'Order history retrieved successfully');
 });
 
 //PATCH api/admin/oreders/:id/status
